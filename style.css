@@ -143,7 +143,8 @@ a { color: var(--groen); }
 #hoofd {
   max-width: 720px;
   margin: 0 auto;
-  padding-bottom: 108px; /* ruimte voor zoekbalk + FAB */
+  /* mobiel: FAB (80px) + zoekbalk (52px) + gaps */
+  padding-bottom: 168px;
 }
 
 /* ── Voortgang ────────────────────────────────────────────────── */
@@ -582,10 +583,11 @@ a { color: var(--groen); }
 /* ── Floating zoekbalk ────────────────────────────────────────── */
 .zoekbalk-container {
   position: fixed;
-  bottom: 22px;
+  /* Mobiel: volledige breedte, gestapeld boven de FAB */
+  bottom: 92px;         /* 22px + 58px FAB + 12px gap */
   left: 20px;
-  right: 90px;          /* ruimte voor FAB (58px) + 12px gap */
-  height: 58px;
+  right: 20px;
+  height: 52px;
   background: var(--wit);
   border-radius: 99px;
   border: 1.5px solid var(--rand);
@@ -832,7 +834,7 @@ a { color: var(--groen); }
 /* ── Toast ────────────────────────────────────────────────────── */
 .toast {
   position: fixed;
-  bottom: 92px;
+  bottom: 158px;   /* boven zoekbalk op mobiel */
   left: 50%;
   transform: translateX(-50%);
   padding: 11px 22px;
@@ -898,6 +900,28 @@ a { color: var(--groen); }
 
 .terugzet-knop:hover    { background: var(--groen-zacht); }
 .terugzet-knop:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Desktop: zoekbalk + FAB uitgelijnd op content-breedte ───── */
+@media (min-width: 760px) {
+  #hoofd { padding-bottom: 108px; }
+
+  /* Zoekbalk naast FAB, links uitgelijnd op content */
+  .zoekbalk-container {
+    bottom: 22px;
+    height: 58px;
+    /* links: linker rand van content (50% - 360px)       */
+    /* rechts: 78px voor FAB (58px) + 20px gap            */
+    left:  calc(50% - 360px);
+    right: calc(50% - 282px);
+  }
+
+  /* FAB uitgelijnd op rechter rand van content */
+  .fab {
+    right: calc(50% - 360px);
+  }
+
+  .toast { bottom: 96px; }
+}
 
 /* ── Desktop grid ─────────────────────────────────────────────── */
 @media (min-width: 640px) {

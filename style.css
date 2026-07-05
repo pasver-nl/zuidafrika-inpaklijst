@@ -143,7 +143,7 @@ a { color: var(--groen); }
 #hoofd {
   max-width: 720px;
   margin: 0 auto;
-  padding-bottom: 88px; /* ruimte voor FAB */
+  padding-bottom: 108px; /* ruimte voor zoekbalk + FAB */
 }
 
 /* ── Voortgang ────────────────────────────────────────────────── */
@@ -577,6 +577,73 @@ a { color: var(--groen); }
   color: var(--tekst-licht);
   padding: 10px 16px 0;
   font-style: italic;
+}
+
+/* ── Floating zoekbalk ────────────────────────────────────────── */
+.zoekbalk-container {
+  position: fixed;
+  bottom: 22px;
+  left: 20px;
+  right: 90px;          /* ruimte voor FAB (58px) + 12px gap */
+  height: 58px;
+  background: var(--wit);
+  border-radius: 99px;
+  border: 1.5px solid var(--rand);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.14);
+  display: flex;
+  align-items: center;
+  padding: 0 6px 0 18px;
+  gap: 8px;
+  z-index: 50;
+  transition: box-shadow 0.2s;
+}
+
+.zoekbalk-container:focus-within {
+  border-color: var(--groen);
+  box-shadow: 0 4px 20px rgba(0, 122, 77, 0.2);
+}
+
+.zoek-icoon {
+  font-size: 1.05rem;
+  flex-shrink: 0;
+  opacity: 0.55;
+}
+
+.zoek-invoer {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  color: var(--tekst);
+  background: transparent;
+  min-width: 0;
+}
+
+.zoek-invoer::placeholder { color: var(--tekst-licht); }
+
+/* Verberg het native wis-icoontje van <input type="search"> */
+.zoek-invoer::-webkit-search-cancel-button { display: none; }
+.zoek-invoer::-webkit-search-decoration     { display: none; }
+
+.zoek-wissen {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: var(--bg);
+  color: var(--tekst-licht);
+  font-size: 0.82rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.zoek-wissen:hover {
+  background: var(--rand);
+  color: var(--tekst);
 }
 
 /* ── FAB (Floating Action Button) ────────────────────────────── */

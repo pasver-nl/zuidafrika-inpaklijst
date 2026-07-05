@@ -23,6 +23,7 @@ let alleItems        = [];        // alle items uit de DB
 let verwijderdeItems = [];        // geladen prullenbak-items
 let actieveFilter    = 'alles';   // 'alles' | 'niet-ingepakt' | 'ingepakt'
 let weergave         = 'kaarten'; // 'kaarten' | 'lijst'
+let zoekterm         = '';        // actieve zoekopdracht (lowercase)
 let teVerwijderenId  = null;      // UUID van het item dat verwijderd wordt
 let teHerstellenId   = null;      // UUID van het item dat teruggezet wordt
 
@@ -86,14 +87,22 @@ function statusKlasse(item) {
 }
 
 function gefilterdeItems() {
+  let items;
   switch (actieveFilter) {
     case 'niet-ingepakt':
-      return alleItems.filter(i => hb(i).length === 0 && kf(i).length === 0);
+      items = alleItems.filter(i => hb(i).length === 0 && kf(i).length === 0); break;
     case 'ingepakt':
-      return alleItems.filter(i => hb(i).length > 0  || kf(i).length > 0);
+      items = alleItems.filter(i => hb(i).length > 0  || kf(i).length > 0);   break;
     default:
-      return alleItems;
+      items = alleItems;
   }
+  if (zoekterm) {
+    items = items.filter(i =>
+      i.naam.toLowerCase().includes(zoekterm) ||
+      (i.opmerking && i.opmerking.toLowerCase().includes(zoekterm))
+    );
+  }
+  return items;
 }
 
 // ── UI: toast-meldingen ────────────────────────────────────────
@@ -571,6 +580,24 @@ function koppelEvents() {
       knop.classList.add('actief');
       renderItems();
     });
+  });
+
+  // Zoekbalk
+  const $zoekInvoer = document.getElementById('zoek-invoer');
+  const $zoekWissen = document.getElementById('zoek-wissen');
+
+  $zoekInvoer.addEventListener('input', () => {
+    zoekterm = $zoekInvoer.value.trim().toLowerCase();
+    $zoekWissen.classList.toggle('verborgen', zoekterm === '');
+    renderItems();
+  });
+
+  $zoekWissen.addEventListener('click', () => {
+    $zoekInvoer.value = '';
+    zoekterm = '';
+    $zoekWissen.classList.add('verborgen');
+    $zoekInvoer.focus();
+    renderItems();
   });
 
   // Weergave-toggle

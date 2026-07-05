@@ -248,12 +248,79 @@ a { color: var(--groen); }
   color: var(--groen);
 }
 
-/* ── Items teller ─────────────────────────────────────────────── */
-.items-teller {
-  padding: 6px 16px;
+/* ── Toolbar (teller + weergave-toggle + export) ──────────────── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 16px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--rand);
+}
+
+.items-teller-tekst {
   font-size: 0.8rem;
   color: var(--tekst-licht);
-  background: var(--bg);
+  flex-shrink: 0;
+}
+
+.toolbar-rechts {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Weergave-knoppen */
+.weergave-knoppen {
+  display: flex;
+  border: 1.5px solid var(--rand);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.weergave-knop {
+  background: var(--wit);
+  border: none;
+  border-right: 1px solid var(--rand);
+  padding: 5px 11px;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--tekst-licht);
+  cursor: pointer;
+  transition: all 0.14s;
+}
+
+.weergave-knop:last-child { border-right: none; }
+
+.weergave-knop.actief {
+  background: var(--groen);
+  color: var(--wit);
+}
+
+.weergave-knop:hover:not(.actief) {
+  background: var(--groen-zacht);
+  color: var(--groen);
+}
+
+/* Export-knop */
+.export-knop {
+  padding: 5px 12px;
+  border: 1.5px solid var(--rand);
+  background: var(--wit);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--tekst);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.14s;
+}
+
+.export-knop:hover {
+  border-color: var(--groen);
+  color: var(--groen);
+  background: var(--groen-zacht);
 }
 
 /* ── Items container ──────────────────────────────────────────── */
@@ -433,6 +500,60 @@ a { color: var(--groen); }
   border-color: var(--groen);
   background: #f0faf5;
   color: var(--tekst);
+}
+
+/* ── Lijst-weergave ───────────────────────────────────────────── */
+.items-container--lijst {
+  display: flex !important;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.item-rij {
+  background: var(--kaart-bg);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: var(--schaduw);
+  border-left: 4px solid var(--rand);
+  min-width: 0;
+}
+
+.item-rij.status-deels { border-left-color: var(--goud); }
+.item-rij.status-beide { border-left-color: var(--groen); background: #f4fbf7; }
+
+.rij-hoofd {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.rij-hoofd .item-naam {
+  font-size: 0.93rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rij-locaties {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.rij-loc {
+  font-size: 0.74rem;
+  color: var(--tekst-licht);
+  white-space: nowrap;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ── Leeg bericht ─────────────────────────────────────────────── */

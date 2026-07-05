@@ -19,11 +19,12 @@ if (typeof CONFIG === 'undefined') {
 const db = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
 
 // ── State ──────────────────────────────────────────────────────
-let alleItems        = [];     // alle items uit de DB
-let verwijderdeItems = [];     // geladen prullenbak-items
-let actieveFilter    = 'alles'; // 'alles' | 'niet-ingepakt' | 'ingepakt'
-let teVerwijderenId  = null;   // UUID van het item dat verwijderd wordt
-let teHerstellenId   = null;   // UUID van het item dat teruggezet wordt
+let alleItems        = [];        // alle items uit de DB
+let verwijderdeItems = [];        // geladen prullenbak-items
+let actieveFilter    = 'alles';   // 'alles' | 'niet-ingepakt' | 'ingepakt'
+let weergave         = 'kaarten'; // 'kaarten' | 'lijst'
+let teVerwijderenId  = null;      // UUID van het item dat verwijderd wordt
+let teHerstellenId   = null;      // UUID van het item dat teruggezet wordt
 
 // ── DOM-verwijzingen ───────────────────────────────────────────
 const $laadscherm      = document.getElementById('laadscherm');
@@ -131,6 +132,30 @@ function updateHeader() {
   }
 }
 
+// ── Render: compacte lijstrij ──────────────────────────────────
+function maakItemRij(item) {
+  const div = document.createElement('div');
+  div.className = `item-rij ${statusKlasse(item)}`;
+  div.dataset.id = item.id;
+
+  const hbNamen = hb(item).join(', ') || '—';
+  const kfNamen = kf(item).join(', ') || '—';
+
+  div.innerHTML = `
+    <div class="rij-hoofd">
+      <span class="item-naam">${escHtml(item.naam)}</span>
+      <span class="item-aantal">${escHtml(item.aantal)}×</span>
+    </div>
+    <div class="rij-locaties">
+      <span class="rij-loc" title="Handbagage: ${escHtml(hbNamen)}">✈️ ${escHtml(hbNamen)}</span>
+      <span class="rij-loc" title="Koffer: ${escHtml(kfNamen)}">🧳 ${escHtml(kfNamen)}</span>
+    </div>
+    <button class="verwijder-knop" data-id="${escHtml(item.id)}"
+            aria-label="Verwijder ${escHtml(item.naam)}" title="Verwijderen">🗑️</button>
+  `;
+  return div;
+}
+
 // ── Render: locatiesectie (handbagage of koffer) ───────────────
 function maakLocatieSectie(item, veld, emoji, label) {
   const personen = Array.isArray(item[veld]) ? item[veld] : [];
@@ -195,6 +220,7 @@ function maakItemKaart(item) {
 function renderItems() {
   const items = gefilterdeItems();
   $itemsContainer.innerHTML = '';
+  $itemsContainer.classList.toggle('items-container--lijst', weergave === 'lijst');
 
   if (items.length === 0) {
     const leeg = document.createElement('div');
@@ -208,7 +234,9 @@ function renderItems() {
     }
     $itemsContainer.appendChild(leeg);
   } else {
-    items.forEach(item => $itemsContainer.appendChild(maakItemKaart(item)));
+    items.forEach(item => $itemsContainer.appendChild(
+      weergave === 'lijst' ? maakItemRij(item) : maakItemKaart(item)
+    ));
   }
 
   const n = items.length;
@@ -434,6 +462,43 @@ function openTerugzetModal(id) {
   openModal($modalTerugzetten);
 }
 
+// ── Export naar Excel ──────────────────────────────────────────
+function exporteerNaarExcel() {
+  if (typeof XLSX === 'undefined') {
+    toonToast('Excel-bibliotheek niet geladen. Controleer je internet.', 'fout');
+    return;
+  }
+
+  const items = gefilterdeItems();
+  if (items.length === 0) {
+    toonToast('Geen items om te exporteren.', 'fout');
+    return;
+  }
+
+  const filterNaam = { alles: 'Alle items', 'niet-ingepakt': 'Nog te doen', ingepakt: 'Ingepakt' };
+
+  const rijen = items.map(item => ({
+    'Naam':            item.naam,
+    'Aantal':          item.aantal,
+    'Toegevoegd door': item.toegevoegd_door,
+    'Handbagage':      hb(item).join(', '),
+    'Koffer':          kf(item).join(', '),
+    'Opmerking':       item.opmerking || ''
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(rijen);
+  ws['!cols'] = [
+    { wch: 32 }, { wch: 8 }, { wch: 18 }, { wch: 28 }, { wch: 28 }, { wch: 30 }
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, filterNaam[actieveFilter] ?? 'Inpaklijst');
+
+  const datum = new Date().toLocaleDateString('nl-NL').replace(/\//g, '-');
+  XLSX.writeFile(wb, `inpaklijst-za-${datum}.xlsx`);
+  toonToast(`${items.length} items geëxporteerd. 📥`);
+}
+
 // ── Realtime ───────────────────────────────────────────────────
 function setupRealtime() {
   db.channel('items-realtime')
@@ -507,6 +572,23 @@ function koppelEvents() {
       renderItems();
     });
   });
+
+  // Weergave-toggle
+  document.getElementById('knop-kaarten').addEventListener('click', () => {
+    weergave = 'kaarten';
+    document.getElementById('knop-kaarten').classList.add('actief');
+    document.getElementById('knop-lijst').classList.remove('actief');
+    renderItems();
+  });
+  document.getElementById('knop-lijst').addEventListener('click', () => {
+    weergave = 'lijst';
+    document.getElementById('knop-lijst').classList.add('actief');
+    document.getElementById('knop-kaarten').classList.remove('actief');
+    renderItems();
+  });
+
+  // Export
+  document.getElementById('export-knop').addEventListener('click', exporteerNaarExcel);
 
   // FAB
   document.getElementById('fab-toevoegen').addEventListener('click', openToevoegModal);

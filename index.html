@@ -69,8 +69,19 @@
         <button class="filter-knop" data-filter="ingepakt">Ingepakt</button>
       </div>
 
-      <div class="items-teller">
-        <span id="zichtbare-teller">0 items</span>
+      <div class="toolbar">
+        <span id="zichtbare-teller" class="items-teller-tekst">0 items</span>
+        <div class="toolbar-rechts">
+          <div class="weergave-knoppen" role="group" aria-label="Weergave">
+            <button id="knop-kaarten" class="weergave-knop actief"
+                    title="Kaartweergave" aria-pressed="true">⊞</button>
+            <button id="knop-lijst" class="weergave-knop"
+                    title="Lijstweergave" aria-pressed="false">☰</button>
+          </div>
+          <button id="export-knop" class="export-knop" title="Exporteer huidige weergave naar Excel">
+            📥 Excel
+          </button>
+        </div>
       </div>
 
       <div id="items-container" class="items-container"></div>
@@ -204,6 +215,7 @@
   <!-- ── Scripts ────────────────────────────────────────────── -->
   <script src="config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
   <script src="app.js"></script>
 
 </body>

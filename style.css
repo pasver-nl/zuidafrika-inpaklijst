@@ -690,6 +690,27 @@ a { color: var(--groen); }
   line-height: 1.6;
 }
 
+.kaart-acties {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.terugzet-knop {
+  padding: 6px 14px;
+  border: 1.5px solid var(--groen);
+  background: var(--wit);
+  border-radius: 99px;
+  font-size: 0.83rem;
+  font-weight: 500;
+  color: var(--groen);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.terugzet-knop:hover    { background: var(--groen-zacht); }
+.terugzet-knop:disabled { opacity: 0.5; cursor: not-allowed; }
+
 /* ── Desktop grid ─────────────────────────────────────────────── */
 @media (min-width: 640px) {
   .items-container {

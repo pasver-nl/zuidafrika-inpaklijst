@@ -19,9 +19,10 @@ if (typeof CONFIG === 'undefined') {
 const db = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
 
 // ── State ──────────────────────────────────────────────────────
-let alleItems   = [];          // alle items uit de DB
-let actieveFilter  = 'alles'; // 'alles' | 'niet-ingepakt' | 'ingepakt'
-let teVerwijderenId = null;    // UUID van het item dat verwijderd wordt
+let alleItems        = [];     // alle items uit de DB
+let verwijderdeItems = [];     // geladen prullenbak-items
+let actieveFilter    = 'alles'; // 'alles' | 'niet-ingepakt' | 'ingepakt'
+let teVerwijderenId  = null;   // UUID van het item dat verwijderd wordt
 
 // ── DOM-verwijzingen ───────────────────────────────────────────
 const $laadscherm      = document.getElementById('laadscherm');
@@ -246,6 +247,10 @@ function renderPrullenbak(items) {
         Toegevoegd door <strong>${escHtml(item.toegevoegd_door)}</strong> op ${datumToeg}<br>
         Verwijderd door <strong>${escHtml(item.verwijderd_door)}</strong> op ${datumVerw}
       </p>
+      <div class="kaart-acties">
+        <button class="terugzet-knop" data-id="${escHtml(item.id)}"
+                title="Item terugzetten naar de lijst">↩️ Terugzetten</button>
+      </div>
     `;
 
     $prullenbak.appendChild(div);
@@ -278,7 +283,8 @@ async function laadPrullenbak() {
     return;
   }
 
-  renderPrullenbak(data ?? []);
+  verwijderdeItems = data ?? [];
+  renderPrullenbak(verwijderdeItems);
 }
 
 // ── Database: item toevoegen ───────────────────────────────────
@@ -368,6 +374,30 @@ async function verwijderItem(id, verwijderdDoor) {
   if (verwijderErr) throw verwijderErr;
 
   await laadItems();
+}
+
+// ── Database: item terugzetten vanuit prullenbak ───────────────
+async function zetItemTerug(id) {
+  const item = verwijderdeItems.find(i => i.id === id);
+  if (!item) throw new Error('Item niet gevonden in prullenbak');
+
+  const { error: insertErr } = await db.from('items').insert({
+    id:                  item.id,
+    naam:                item.naam,
+    aantal:              item.aantal,
+    toegevoegd_door:     item.toegevoegd_door,
+    toegevoegd_op:       item.toegevoegd_op,
+    ingepakt_handbagage: item.ingepakt_handbagage,
+    ingepakt_koffer:     item.ingepakt_koffer,
+    opmerking:           item.opmerking
+  });
+  if (insertErr) throw insertErr;
+
+  const { error: deleteErr } = await db
+    .from('verwijderde_items').delete().eq('id', id);
+  if (deleteErr) throw deleteErr;
+
+  await Promise.all([laadItems(), laadPrullenbak()]);
 }
 
 // ── Realtime ───────────────────────────────────────────────────
@@ -530,6 +560,23 @@ function koppelEvents() {
     }
     const verwijderKnop = e.target.closest('.verwijder-knop');
     if (verwijderKnop) openVerwijderModal(verwijderKnop.dataset.id);
+  });
+
+  // Prullenbak: terugzetten
+  $prullenbak.addEventListener('click', async e => {
+    const knop = e.target.closest('.terugzet-knop');
+    if (!knop) return;
+    knop.disabled = true;
+    knop.textContent = 'Bezig…';
+    try {
+      await zetItemTerug(knop.dataset.id);
+      toonToast('Item teruggezet naar de lijst. ↩️');
+    } catch (err) {
+      console.error(err);
+      toonToast('Kon item niet terugzetten.', 'fout');
+      knop.disabled = false;
+      knop.textContent = '↩️ Terugzetten';
+    }
   });
 
   // Escape sluit open modal

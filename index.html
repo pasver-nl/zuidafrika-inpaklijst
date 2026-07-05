@@ -134,6 +134,47 @@
     </div>
   </div>
 
+  <!-- ── Modal: Item terugzetten ──────────────────────────── -->
+  <div id="modal-terugzetten" class="modal verborgen" role="dialog"
+       aria-modal="true" aria-labelledby="modal-terugzetten-titel">
+    <div class="modal-achtergrond"></div>
+    <div class="modal-inhoud">
+      <h2 id="modal-terugzetten-titel">↩️ Item terugzetten</h2>
+      <p id="terugzet-naam" class="bevestiging-tekst"></p>
+
+      <div class="formulier-groep">
+        <div class="locatie-kop">
+          <label>✈️ Handbagage</label>
+          <div class="locatie-snelknoppen">
+            <button type="button" class="snel-knop" data-doel="terugzet-hb" data-actie="allen">Iedereen</button>
+            <button type="button" class="snel-knop" data-doel="terugzet-hb" data-actie="geen">Niemand</button>
+          </div>
+        </div>
+        <div id="terugzet-hb" class="persoon-chips"></div>
+      </div>
+
+      <div class="formulier-groep">
+        <div class="locatie-kop">
+          <label>🧳 Koffer</label>
+          <div class="locatie-snelknoppen">
+            <button type="button" class="snel-knop" data-doel="terugzet-kf" data-actie="allen">Iedereen</button>
+            <button type="button" class="snel-knop" data-doel="terugzet-kf" data-actie="geen">Niemand</button>
+          </div>
+        </div>
+        <div id="terugzet-kf" class="persoon-chips"></div>
+      </div>
+
+      <div class="formulier-acties">
+        <button type="button" id="annuleer-terugzetten" class="knop knop--neutraal">
+          Annuleren
+        </button>
+        <button type="button" id="bevestig-terugzetten" class="knop knop--primair">
+          ↩️ Terugzetten
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ── Modal: Item verwijderen ───────────────────────────── -->
   <div id="modal-verwijderen" class="modal verborgen" role="dialog"
        aria-modal="true" aria-labelledby="modal-verwijderen-titel">

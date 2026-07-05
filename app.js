@@ -23,6 +23,7 @@ let alleItems        = [];     // alle items uit de DB
 let verwijderdeItems = [];     // geladen prullenbak-items
 let actieveFilter    = 'alles'; // 'alles' | 'niet-ingepakt' | 'ingepakt'
 let teVerwijderenId  = null;   // UUID van het item dat verwijderd wordt
+let teHerstellenId   = null;   // UUID van het item dat teruggezet wordt
 
 // ── DOM-verwijzingen ───────────────────────────────────────────
 const $laadscherm      = document.getElementById('laadscherm');
@@ -45,6 +46,7 @@ const $invoerAantal         = document.getElementById('invoer-aantal');
 const $invoerOpmerking      = document.getElementById('invoer-opmerking');
 const $invoerToegevoegdDoor = document.getElementById('invoer-toegevoegd-door');
 
+const $modalTerugzetten       = document.getElementById('modal-terugzetten');
 const $modalVerwijderen       = document.getElementById('modal-verwijderen');
 const $verwijderBevestiging   = document.getElementById('verwijder-bevestiging');
 const $invoerVerwijderdDoor   = document.getElementById('invoer-verwijderd-door');
@@ -377,7 +379,7 @@ async function verwijderItem(id, verwijderdDoor) {
 }
 
 // ── Database: item terugzetten vanuit prullenbak ───────────────
-async function zetItemTerug(id) {
+async function zetItemTerug(id, hbArray, kfArray) {
   const item = verwijderdeItems.find(i => i.id === id);
   if (!item) throw new Error('Item niet gevonden in prullenbak');
 
@@ -387,8 +389,8 @@ async function zetItemTerug(id) {
     aantal:              item.aantal,
     toegevoegd_door:     item.toegevoegd_door,
     toegevoegd_op:       item.toegevoegd_op,
-    ingepakt_handbagage: item.ingepakt_handbagage,
-    ingepakt_koffer:     item.ingepakt_koffer,
+    ingepakt_handbagage: hbArray,
+    ingepakt_koffer:     kfArray,
     opmerking:           item.opmerking
   });
   if (insertErr) throw insertErr;
@@ -398,6 +400,38 @@ async function zetItemTerug(id) {
   if (deleteErr) throw deleteErr;
 
   await Promise.all([laadItems(), laadPrullenbak()]);
+}
+
+// ── UI: terugzet-modal ─────────────────────────────────────────
+function renderTerugzetChips(containerId, geselecteerd) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  CONFIG.namen.forEach(naam => {
+    const label = document.createElement('label');
+    const aan = geselecteerd.includes(naam);
+    label.className = `persoon-chip${aan ? ' aan' : ''}`;
+    label.innerHTML = `
+      <input type="checkbox" data-naam="${escHtml(naam)}" ${aan ? 'checked' : ''}>
+      ${escHtml(naam)}
+    `;
+    container.appendChild(label);
+  });
+}
+
+function openTerugzetModal(id) {
+  const item = verwijderdeItems.find(i => i.id === id);
+  if (!item) return;
+  teHerstellenId = id;
+
+  document.getElementById('terugzet-naam').textContent =
+    `Wie heeft "${item.naam}" ingepakt? Pas de verdeling aan en zet het item terug.`;
+
+  const hb = Array.isArray(item.ingepakt_handbagage) ? item.ingepakt_handbagage : [];
+  const kf = Array.isArray(item.ingepakt_koffer)     ? item.ingepakt_koffer     : [];
+  renderTerugzetChips('terugzet-hb', hb);
+  renderTerugzetChips('terugzet-kf', kf);
+
+  openModal($modalTerugzetten);
 }
 
 // ── Realtime ───────────────────────────────────────────────────
@@ -562,20 +596,60 @@ function koppelEvents() {
     if (verwijderKnop) openVerwijderModal(verwijderKnop.dataset.id);
   });
 
-  // Prullenbak: terugzetten
-  $prullenbak.addEventListener('click', async e => {
+  // Prullenbak: terugzet-knop opent modal
+  $prullenbak.addEventListener('click', e => {
     const knop = e.target.closest('.terugzet-knop');
+    if (knop) openTerugzetModal(knop.dataset.id);
+  });
+
+  // Terugzet-modal: sluiten
+  $modalTerugzetten.querySelector('.modal-achtergrond')
+    .addEventListener('click', () => sluitModal($modalTerugzetten));
+  document.getElementById('annuleer-terugzetten')
+    .addEventListener('click', () => sluitModal($modalTerugzetten));
+
+  // Terugzet-modal: chip toggle via event-delegatie
+  $modalTerugzetten.addEventListener('change', e => {
+    if (e.target.type === 'checkbox') {
+      e.target.closest('.persoon-chip')?.classList.toggle('aan', e.target.checked);
+    }
+  });
+
+  // Terugzet-modal: Iedereen / Niemand knoppen
+  $modalTerugzetten.addEventListener('click', e => {
+    const knop = e.target.closest('.snel-knop[data-doel]');
     if (!knop) return;
-    knop.disabled = true;
-    knop.textContent = 'Bezig…';
+    const container = document.getElementById(knop.dataset.doel);
+    const aan = knop.dataset.actie === 'allen';
+    container.querySelectorAll('.persoon-chip').forEach(chip => {
+      const inp = chip.querySelector('input');
+      inp.checked = aan;
+      chip.classList.toggle('aan', aan);
+    });
+  });
+
+  // Terugzet-modal: bevestigen
+  document.getElementById('bevestig-terugzetten').addEventListener('click', async () => {
+    const hbArray = [...document.querySelectorAll('#terugzet-hb input:checked')]
+      .map(i => i.dataset.naam);
+    const kfArray = [...document.querySelectorAll('#terugzet-kf input:checked')]
+      .map(i => i.dataset.naam);
+
+    const bevestigKnop = document.getElementById('bevestig-terugzetten');
+    bevestigKnop.disabled = true;
+    bevestigKnop.textContent = 'Bezig…';
+
     try {
-      await zetItemTerug(knop.dataset.id);
+      await zetItemTerug(teHerstellenId, hbArray, kfArray);
+      sluitModal($modalTerugzetten);
       toonToast('Item teruggezet naar de lijst. ↩️');
     } catch (err) {
       console.error(err);
       toonToast('Kon item niet terugzetten.', 'fout');
-      knop.disabled = false;
-      knop.textContent = '↩️ Terugzetten';
+    } finally {
+      bevestigKnop.disabled = false;
+      bevestigKnop.textContent = '↩️ Terugzetten';
+      teHerstellenId = null;
     }
   });
 
@@ -584,6 +658,7 @@ function koppelEvents() {
     if (e.key === 'Escape') {
       sluitModal($modalToevoegen);
       sluitModal($modalVerwijderen);
+      sluitModal($modalTerugzetten);
     }
   });
 }

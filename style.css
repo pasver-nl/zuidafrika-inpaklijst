@@ -143,8 +143,7 @@ a { color: var(--groen); }
 #hoofd {
   max-width: 720px;
   margin: 0 auto;
-  /* mobiel: FAB (80px) + zoekbalk (52px) + gaps */
-  padding-bottom: 168px;
+  padding-bottom: 100px;
 }
 
 /* ── Voortgang ────────────────────────────────────────────────── */
@@ -583,10 +582,10 @@ a { color: var(--groen); }
 /* ── Floating zoekbalk ────────────────────────────────────────── */
 .zoekbalk-container {
   position: fixed;
-  /* Mobiel: volledige breedte, gestapeld boven de FAB */
-  bottom: 92px;         /* 22px + 58px FAB + 12px gap */
+  /* Mobiel: naast de FAB */
+  bottom: 22px;
   left: 20px;
-  right: 20px;
+  right: 90px;          /* 20px marge + 58px FAB + 12px gap */
   height: 52px;
   background: var(--wit);
   border-radius: 99px;
@@ -834,7 +833,7 @@ a { color: var(--groen); }
 /* ── Toast ────────────────────────────────────────────────────── */
 .toast {
   position: fixed;
-  bottom: 158px;   /* boven zoekbalk op mobiel */
+  bottom: 92px;
   left: 50%;
   transform: translateX(-50%);
   padding: 11px 22px;

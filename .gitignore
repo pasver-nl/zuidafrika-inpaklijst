@@ -1,0 +1,8 @@
+node_modules/
+.DS_Store
+*.local
+.env
+
+# config.js wordt BEWUST niet genegeerd.
+# De Supabase anon key is een publieke key die in elke browser-app
+# zichtbaar is – zie README.md voor de uitleg.

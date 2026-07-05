@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#007A4D">
+  <meta name="description" content="Familie inpaklijst voor Zuid-Afrika 2026">
+  <title>🌍 ZA Inpaklijst 2026</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <header class="app-header">
+    <div class="flag-stripe" aria-hidden="true"></div>
+    <div class="header-inner">
+      <div class="header-left">
+        <span class="header-icon" aria-hidden="true">✈️</span>
+        <div>
+          <h1 class="header-titel">Inpaklijst Zuid-Afrika</h1>
+          <p class="header-sub" id="header-sub">Vertrek 25 juli 2026</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <span class="vlag" aria-label="Vlag Zuid-Afrika">🇿🇦</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Verbindingsfout ─────────────────────────────────────── -->
+  <div id="verbinding-fout" class="foutbalk verborgen" role="alert">
+    <span>⚠️</span>
+    <span id="verbinding-tekst">Geen verbinding met de database. Controleer je internet en herlaad de pagina.</span>
+  </div>
+
+  <!-- ── Laad-scherm ────────────────────────────────────────── -->
+  <div id="laadscherm" class="laadscherm">
+    <div class="spinner" aria-hidden="true"></div>
+    <p>Bezig met laden…</p>
+  </div>
+
+  <!-- ── Hoofd-inhoud ───────────────────────────────────────── -->
+  <main id="hoofd" class="verborgen">
+
+    <!-- Voortgang -->
+    <section class="voortgang-sectie" aria-label="Voortgang">
+      <div class="voortgang-info">
+        <span id="voortgang-tekst">0 van 0 items ingepakt</span>
+        <span id="voortgang-pct" class="voortgang-pct">0%</span>
+      </div>
+      <div class="voortgang-balk" role="progressbar"
+           aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+        <div id="voortgang-vulling" class="voortgang-vulling" style="width:0%"></div>
+      </div>
+    </section>
+
+    <!-- Tabbladen -->
+    <nav class="tab-nav" aria-label="Secties">
+      <button class="tab-knop actief" data-tab="lijst">📋 Lijst</button>
+      <button class="tab-knop" data-tab="prullenbak">🗑️ Prullenbak</button>
+    </nav>
+
+    <!-- ── Tabblad: Lijst ──────────────────────────────────── -->
+    <div id="tab-lijst" class="tab-inhoud">
+
+      <div class="filter-balk" role="group" aria-label="Filter">
+        <button class="filter-knop actief" data-filter="alles">Alles</button>
+        <button class="filter-knop" data-filter="niet-ingepakt">Nog te doen</button>
+        <button class="filter-knop" data-filter="ingepakt">Ingepakt</button>
+      </div>
+
+      <div class="items-teller">
+        <span id="zichtbare-teller">0 items</span>
+      </div>
+
+      <div id="items-container" class="items-container"></div>
+    </div>
+
+    <!-- ── Tabblad: Prullenbak ────────────────────────────── -->
+    <div id="tab-prullenbak" class="tab-inhoud verborgen">
+      <p class="prullenbak-intro">
+        Hier vind je alle verwijderde items, inclusief wie ze heeft verwijderd.
+      </p>
+      <div id="prullenbak-container" class="items-container"></div>
+    </div>
+
+  </main>
+
+  <!-- ── FAB: item toevoegen ────────────────────────────────── -->
+  <button id="fab-toevoegen" class="fab" aria-label="Item toevoegen" title="Item toevoegen">
+    <span aria-hidden="true">+</span>
+  </button>
+
+  <!-- ── Modal: Item toevoegen ─────────────────────────────── -->
+  <div id="modal-toevoegen" class="modal verborgen" role="dialog"
+       aria-modal="true" aria-labelledby="modal-toevoegen-titel">
+    <div class="modal-achtergrond"></div>
+    <div class="modal-inhoud">
+      <h2 id="modal-toevoegen-titel">📦 Item toevoegen</h2>
+      <form id="form-toevoegen" novalidate>
+
+        <div class="formulier-groep">
+          <label for="invoer-naam">Naam <span class="verplicht">*</span></label>
+          <input type="text" id="invoer-naam" placeholder="Bijv. Zonnebrandcrème SPF50"
+                 autocomplete="off" required>
+        </div>
+
+        <div class="formulier-groep formulier-groep--smal">
+          <label for="invoer-aantal">Aantal</label>
+          <input type="number" id="invoer-aantal" value="1" min="1" max="999" required>
+        </div>
+
+        <div class="formulier-groep">
+          <label for="invoer-opmerking">Opmerking</label>
+          <input type="text" id="invoer-opmerking" placeholder="Optioneel – bijv. 'al ingepakt'">
+        </div>
+
+        <div class="formulier-groep">
+          <label for="invoer-toegevoegd-door">Wie voegt toe? <span class="verplicht">*</span></label>
+          <select id="invoer-toegevoegd-door" required>
+            <option value="">— Kies een naam —</option>
+          </select>
+        </div>
+
+        <div class="formulier-acties">
+          <button type="button" id="annuleer-toevoegen" class="knop knop--neutraal">
+            Annuleren
+          </button>
+          <button type="submit" class="knop knop--primair">
+            Toevoegen
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Modal: Item verwijderen ───────────────────────────── -->
+  <div id="modal-verwijderen" class="modal verborgen" role="dialog"
+       aria-modal="true" aria-labelledby="modal-verwijderen-titel">
+    <div class="modal-achtergrond"></div>
+    <div class="modal-inhoud">
+      <h2 id="modal-verwijderen-titel">🗑️ Item verwijderen</h2>
+      <p id="verwijder-bevestiging" class="bevestiging-tekst"></p>
+
+      <div class="formulier-groep">
+        <label for="invoer-verwijderd-door">Wie verwijdert? <span class="verplicht">*</span></label>
+        <select id="invoer-verwijderd-door" required>
+          <option value="">— Kies een naam —</option>
+        </select>
+      </div>
+
+      <div class="formulier-acties">
+        <button type="button" id="annuleer-verwijderen" class="knop knop--neutraal">
+          Annuleren
+        </button>
+        <button type="button" id="bevestig-verwijderen" class="knop knop--gevaar">
+          Verwijderen
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Scripts ────────────────────────────────────────────── -->
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="app.js"></script>
+
+</body>
+</html>
